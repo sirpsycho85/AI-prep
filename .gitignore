@@ -1,2 +1,4 @@
 cifar-10/
 .DS_Store
+.idea/
+venv/

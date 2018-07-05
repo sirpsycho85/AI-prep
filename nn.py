@@ -1,28 +1,30 @@
 import numpy as np
 
+
 class K_Nearest_Neighbor(object):
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
-  def train(self, X, y):
-    self.Xtr = X
-    self.ytr = y
+    def train(self, X, y):
+        self.Xtr = X
+        self.ytr = y
 
-  def predict(self, X, k=1):
-    prediction_batch_size = X.shape[0]
-    ypreds = np.zeros(prediction_batch_size, dtype = self.ytr.dtype)
+    def predict(self, X, k=1):
+        prediction_batch_size = X.shape[0]
+        ypreds = np.zeros(prediction_batch_size, dtype=self.ytr.dtype)
     
-    for i in range(prediction_batch_size):
-      
-      distances = np.sum(np.square(self.Xtr - X[i,:]), axis = 1)
-      # X[i,:] means index i for 1st dimension, all elements of second dimension.
-      # ...so ith image, all pixels
-      
-      k_nearest_indexes = np.argsort(distances)[0:k]
-      classes_for_k_nearest = self.ytr[k_nearest_indexes]
-      ypred = np.argmax(np.bincount(classes_for_k_nearest))
-      ypreds[i] = ypred
-    return ypreds
+        for i in range(prediction_batch_size):
+
+            distances = np.sum(np.square(self.Xtr - X[i, :]), axis=1)
+            # X[i,:] means index i for 1st dimension, all elements of second dimension.
+            # ...so ith image, all pixels
+
+            k_nearest_indexes = np.argsort(distances)[0:k]
+            classes_for_k_nearest = self.ytr[k_nearest_indexes]
+            ypred = np.argmax(np.bincount(classes_for_k_nearest))
+            ypreds[i] = ypred
+        return ypreds
+
 
 def unpickle(file):
     import pickle
@@ -31,8 +33,6 @@ def unpickle(file):
     X = dict[b'data']
     y = np.array(dict[b'labels'])
     return X, y
-
-# def load_cifar10(dir):
 
 
 X, y = unpickle('cifar-10/data_batch_1')
