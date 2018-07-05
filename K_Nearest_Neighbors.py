@@ -1,7 +1,8 @@
 import numpy as np
+import Cifar_Loader as cifar
 
 
-class K_Nearest_Neighbor(object):
+class K_Nearest_Neighbors(object):
     def __init__(self):
         pass
 
@@ -26,30 +27,15 @@ class K_Nearest_Neighbor(object):
         return ypreds
 
 
-def unpickle(file):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    X = dict[b'data']
-    y = np.array(dict[b'labels'])
-    return X, y
-
-
-X, y = unpickle('cifar-10/data_batch_1')
-max_data_size = 100
-part_validation = 0.1
-
-data_end_index = min(max_data_size, len(X))
-training_end_index = int(data_end_index * (1-part_validation))
-Xtr = X[:training_end_index]
-ytr = y[:training_end_index]
-Xva = X[training_end_index + 1:]
-yva = y[training_end_index + 1:]
+data = cifar.load('cifar-10', max_data_size=100, part_validation=0.1)
+Xtr = data['Xtr']
+ytr = data['ytr']
+Xva = data['Xva']
+yva = data['yva']
 
 for k in [1, 3, 5, 10, 20, 50, 100]:
-
-  nn = K_Nearest_Neighbor()
-  nn.train(Xtr, ytr)
-  yva_predict = nn.predict(Xva, k)
-  acc = np.mean(yva_predict == yva)
-  print('k: %i,\taccuracy: %f' % (k, acc))
+    nn = K_Nearest_Neighbors()
+    nn.train(Xtr, ytr)
+    yva_predict = nn.predict(Xva, k)
+    acc = np.mean(yva_predict == yva)
+    print('k: %i,\taccuracy: %f' % (k, acc))
