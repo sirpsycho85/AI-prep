@@ -32,7 +32,7 @@ def load(directory, max_data_size=num_examples, part_validation=0.1):
     training_end_index = int(data_end_index * (1 - part_validation))
     Xtr = X[:training_end_index]
     ytr = y[:training_end_index]
-    Xva = X[training_end_index + 1:]
-    yva = y[training_end_index + 1:]
+    Xva = X[training_end_index + 1: data_end_index + 1]
+    yva = y[training_end_index + 1: data_end_index + 1]
 
     return {'Xtr': Xtr, 'ytr': ytr, 'Xva': Xva, 'yva': yva}
