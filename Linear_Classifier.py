@@ -2,6 +2,26 @@ import numpy as np
 import Cifar_Loader as cifar
 
 
+"""
+Training:
+
+For each example x
+    Forward through FC:
+        Add bias trick "feature" = 1
+        Multiply W (num_classes, num_features+1) by x (num_features) to produce scores (num_classes,)
+    Forward through hinge loss:
+        Calculate class_losses (num_classes,) as sum(max(0, score[class_index] + delta - score[index_correct_class]))
+        Zero out loss[index_correct_class]
+        Calculate loss (1,) as sum(class_losses)
+    Backwards through hinge loss to calculate d_class_score (num_classes,):
+        For each classifier with loss > 0, d_class_score = 1
+        For the classifier of the correct class, d_class_score = -1 * num_classifiers_with_nonzero_loss
+    Backwards through FC:
+        Gradients (num_classes, num_features+1) = d_class_score * x
+        Update FC: W = W - learning_rate * gradients
+        
+So FC has to remember X, hinge has to remember the individual classifier losses. These are the "local" gradients.       
+"""
 class Hinge_Loss(object):
     def __init__(self):
         pass
@@ -61,13 +81,13 @@ class Linear_Classifier(object):
 data = cifar.load('cifar-10', max_data_size=100, part_validation=0.1)
 Xtr = data['Xtr']
 ytr = data['ytr']
-Xva = data['Xva']
-yva = data['yva']
+Xval = data['Xval']
+yval = data['yval']
 example_length = 32 * 32 * 3
 num_classes = 10
 lc = Linear_Classifier(Hinge_Loss(), example_length, num_classes)
 lc.train(Xtr, ytr, 0.001)
 
-predicted_classes = lc.predict(Xva)
-accuracy = np.mean(predicted_classes == yva)
+predicted_classes = lc.predict(Xval)
+accuracy = np.mean(predicted_classes == yval)
 print("Accuracy: %f" % accuracy)
