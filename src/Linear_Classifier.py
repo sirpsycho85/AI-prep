@@ -24,53 +24,26 @@ So FC has to remember X, hinge has to remember the individual classifier losses.
 """
 
 
-class Fully_Connected(object):
-    def __init__(self, num_classes, num_features):
-        self.W = np.random.random((num_classes, num_features + 1)) / 1  # (num_classes, num_features + 1) bias trick
-        self.x = None
-        self.dw = None
-
-    def forward(self, x):
-        self.x = np.append(x, [1])  # (num_features + 1,)
-        return self.W.dot(self.x)  # (num_classes,)
-
-    def backward(self, ds):  # ds := dL/ds, where s is the scores output of the FC layer
-        ds_T = np.reshape(ds, (-1, 1))  # ds to column vector so each row of ds gives row of dw for its classifier
-        x = np.reshape(self.x, (1, -1))
-        self.dw = ds_T.dot(x)
-        return self.dw
-
-    def update(self, learning_rate):
-        self.W = self.W - learning_rate * self.dw
-
-num_classes = 10
-x = np.array([1, 0.1])
-fc = Fully_Connected(num_classes, x.size)
-fc_out = fc.forward(x)
-ds = np.random.random(num_classes)
-dw = fc.backward(ds)
-fc.update(0.1)
-
 class Hinge_Loss(object):
     def __init__(self):
-        pass
+        self.delta = 1.0
+        self.losses = None
 
     def forward(self, scores, index_correct):
-        delta = 1.0
+        self.losses = np.zeros_like(scores)  # zero on each forward pass
         score_correct = scores[index_correct]
-        losses = np.zeros_like(scores)
-        for i in range(losses.size):
-            losses[i] = max(0, scores[i] + delta - score_correct)
-        losses[index_correct] = 0
+        for i in range(self.losses.size):
+            self.losses[i] = max(0, scores[i] + self.delta - score_correct)
+        self.losses[index_correct] = 0
         # loss = np.sum(losses)
-        return losses
+        return self.losses
 
-    def backward(self, losses, index_correct):
-        gradients = np.zeros_like(losses)
-        for i, e in enumerate(losses):
+    def backward(self, index_correct):
+        gradients = np.zeros_like(self.losses)
+        for i, e in enumerate(self.losses):
             if e > 0:
                 gradients[i] = 1
-        gradients[index_correct] = -1
+        gradients[index_correct] = sum(gradients)  # number of classifiers with loss
         return gradients
 
 
