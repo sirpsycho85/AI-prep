@@ -23,30 +23,33 @@ For each example x
 So FC has to remember X, hinge has to remember the individual classifier losses. These are the "local" gradients.       
 """
 
+
 class Fully_Connected(object):
     def __init__(self, num_classes, num_features):
-        self.W = np.random.random((num_classes, num_features + 1)) / 1000  # (num_classes, num_features + 1) bias trick
+        self.W = np.random.random((num_classes, num_features + 1)) / 1  # (num_classes, num_features + 1) bias trick
         self.x = None
+        self.dw = None
 
     def forward(self, x):
-        self.x = np.append(x, [1]) # (num_features + 1,)
+        self.x = np.append(x, [1])  # (num_features + 1,)
         return self.W.dot(self.x)  # (num_classes,)
 
-    def backward(self, dsdw): #ds := dL/ds, where s is the scores output of the FC layer
-        dsdw_T = np.reshape(dsdw, (-1, 1))
+    def backward(self, ds):  # ds := dL/ds, where s is the scores output of the FC layer
+        ds_T = np.reshape(ds, (-1, 1))  # ds to column vector so each row of ds gives row of dw for its classifier
         x = np.reshape(self.x, (1, -1))
-        print(dsdw_T.shape)
-        dw = dsdw_T.dot(x)
-        return dw
+        self.dw = ds_T.dot(x)
+        return self.dw
 
     def update(self, learning_rate):
-        pass
+        self.W = self.W - learning_rate * self.dw
 
-fc = Fully_Connected(3, 2)
-fc_out = fc.forward(np.random.random(2))
-print("fc_out = \n", fc_out, "\n")
-fc_grad = fc.backward(np.ones(3))
-print("fc_grad = \n", fc_grad, "\n")
+num_classes = 10
+x = np.array([1, 0.1])
+fc = Fully_Connected(num_classes, x.size)
+fc_out = fc.forward(x)
+ds = np.random.random(num_classes)
+dw = fc.backward(ds)
+fc.update(0.1)
 
 class Hinge_Loss(object):
     def __init__(self):
