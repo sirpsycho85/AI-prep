@@ -12,7 +12,8 @@ For each example x
     Forward through hinge loss:
         Calculate class_losses (num_classes,) as sum(max(0, score[class_index] + delta - score[index_correct_class]))
         Zero out loss[index_correct_class]
-        Calculate loss (1,) as sum(class_losses)
+        Calculate loss (1,) as sum(class_losses)...is this even used except to monitor?
+        Remember losses for backwards pass
     Backwards through hinge loss to calculate d_class_score (num_classes,):
         For each classifier with loss > 0, d_class_score = 1
         For the classifier of the correct class, d_class_score = -1 * num_classifiers_with_nonzero_loss
@@ -25,25 +26,26 @@ So FC has to remember X, hinge has to remember the individual classifier losses.
 
 
 class Hinge_Loss(object):
+    # todo: support batches
     def __init__(self):
         self.delta = 1.0
         self.losses = None
 
-    def forward(self, scores, index_correct):
+    def forward(self, scores, y_index):
         self.losses = np.zeros_like(scores)  # zero on each forward pass
-        score_correct = scores[index_correct]
+        score_correct = scores[y_index]
         for i in range(self.losses.size):
             self.losses[i] = max(0, scores[i] + self.delta - score_correct)
-        self.losses[index_correct] = 0
-        # loss = np.sum(losses)
-        return self.losses
+        self.losses[y_index] = 0
+        loss = np.sum(self.losses)
+        return loss
 
-    def backward(self, index_correct):
+    def backward(self, y_index):
         gradients = np.zeros_like(self.losses)
         for i, e in enumerate(self.losses):
             if e > 0:
                 gradients[i] = 1
-        gradients[index_correct] = sum(gradients)  # number of classifiers with loss
+        gradients[y_index] = sum(gradients)  # number of classifiers with loss
         return gradients
 
 
