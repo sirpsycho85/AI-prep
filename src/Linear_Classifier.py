@@ -1,28 +1,7 @@
 import numpy as np
 import Cifar_Loader as cifar
+from Fully_Connected import Fully_Connected
 from Hinge_Loss import Hinge_Loss
-
-"""
-Training:
-
-For each example x
-    Forward through FC:
-        Add bias trick "feature" = 1
-        Multiply W (num_classes, num_features+1) by x (num_features,) to produce scores (num_classes,)
-    Forward through hinge loss:
-        Calculate class_losses (num_classes,) as sum(max(0, score[class_index] + delta - score[index_correct_class]))
-        Zero out loss[index_correct_class]
-        Calculate loss (1,) as sum(class_losses)...is this even used except to monitor?
-        Remember losses for backwards pass
-    Backwards through hinge loss to calculate d_class_score (num_classes,):
-        For each classifier with loss > 0, d_class_score = 1
-        For the classifier of the correct class, d_class_score = -1 * num_classifiers_with_nonzero_loss
-    Backwards through FC:
-        Gradients (num_classes, num_features+1) = d_class_score * x
-        Update FC: W = W - learning_rate * gradients
-        
-So FC has to remember X, hinge has to remember the individual classifier losses. These are the "local" gradients.       
-"""
 
 
 class Linear_Classifier(object):
@@ -37,7 +16,7 @@ class Linear_Classifier(object):
     # but do you sum gradients as well? SVM gradient function is different if it's the labeled class or not
     # also need to add biases, or use bias trick
     def update(self, losses, rate, y):
-        gradients = np.zeros((num_classes, example_length))
+        gradients = np.zeros((num_classes, num_features))
         loss_gradients = self.loss_function.backward(losses, y)
         return self.W + gradients * rate
 
@@ -49,7 +28,7 @@ class Linear_Classifier(object):
         for example_scores, example_label in zip(batch_scores, y):
             example_loss = self.loss_function.forward(example_scores, example_label)
             losses += example_loss
-            example_gradients = np.zeros((num_classes, example_length))
+            example_gradients = np.zeros((num_classes, num_features))
 
         self.W = self.update(losses, rate, y)
 
@@ -58,16 +37,33 @@ class Linear_Classifier(object):
         return np.apply_along_axis(np.argmax, 1, scores)
 
 
+class Neural_Network(object):
+    def __init__(self):
+        self.layers = []
+
+    def add_layer(self, layer):
+        self.layers.append(layer)
+
+    def train(self, X, y, learning_rate):
+        pass
+
+
 data = cifar.load('cifar-10', max_data_size=100, part_validation=0.1)
 Xtr = data['Xtr']
 Ytr = data['Ytr']
 Xval = data['Xval']
 Yval = data['Yval']
-example_length = 32 * 32 * 3
+num_features = 32 * 32 * 3
 num_classes = 10
-lc = Linear_Classifier(Hinge_Loss(), example_length, num_classes)
-lc.train(Xtr, Ytr, 0.001)
-
-predicted_classes = lc.predict(Xval)
-accuracy = np.mean(predicted_classes == Yval)
+# lc = Linear_Classifier(Hinge_Loss(), num_features, num_classes)
+# lc.train(Xtr, Ytr, 0.001)
+# predicted_classes = lc.predict(Xval)
+# accuracy = np.mean(predicted_classes == Yval)
 # print("Accuracy: %f" % accuracy)
+
+fc = Fully_Connected(num_classes, num_features)
+hinge = Hinge_Loss()
+nn = Neural_Network()
+nn.add_layer(fc)
+nn.add_layer(hinge)
+print(nn.layers)
