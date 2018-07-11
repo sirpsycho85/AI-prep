@@ -13,26 +13,26 @@ def unpickle(file):
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     X = dict[b'data']
-    y = np.array(dict[b'labels'])
-    return X, y
+    Y = np.array(dict[b'labels'])
+    return X, Y
 
 
 def load(directory, max_data_size=num_examples, part_validation=0.1):
 
     X = np.zeros(shape=[num_examples, img_size_flat], dtype=np.float64)
-    y = np.empty(shape=[num_examples], dtype=np.int64)
+    Y = np.empty(shape=[num_examples], dtype=np.int64)
 
     for i in range(0, num_batches):
         path = directory + '/data_batch_%i' % (i+1)  # todo: load all data
-        X_batch, y_batch = unpickle(path)
+        X_batch, Y_batch = unpickle(path)
         X[i * examples_per_batch: (i + 1) * examples_per_batch] = X_batch
-        y[i * examples_per_batch: (i + 1) * examples_per_batch] = y_batch
+        Y[i * examples_per_batch: (i + 1) * examples_per_batch] = Y_batch
 
     data_end_index = min(max_data_size, len(X))
     training_end_index = int(data_end_index * (1 - part_validation))
     Xtr = X[:training_end_index]
-    ytr = y[:training_end_index]
+    Ytr = Y[:training_end_index]
     Xval = X[training_end_index + 1: data_end_index + 1]
-    yval = y[training_end_index + 1: data_end_index + 1]
+    Yval = Y[training_end_index + 1: data_end_index + 1]
 
-    return {'Xtr': Xtr, 'ytr': ytr, 'Xval': Xval, 'yval': yval}
+    return {'Xtr': Xtr, 'Ytr': Ytr, 'Xval': Xval, 'Yval': Yval}
