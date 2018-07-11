@@ -24,7 +24,7 @@ class Hinge_Loss(object):
         for i, e in enumerate(self.losses):
             if e > 0:
                 ds[i] = 1
-        ds[self.yi] = sum(ds)  # number of classifiers with loss
+        ds[self.yi] = -1 * sum(ds)  # number of classifiers with loss
         ds *= dl
         return ds
 

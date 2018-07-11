@@ -5,7 +5,7 @@ class Fully_Connected(object):
     # todo: should inject W so you can customize initialization and just stack bias here?
     # todo: support batches
     def __init__(self, num_classes, num_features):
-        self.W = np.random.random((num_classes, num_features + 1)) / 1000  # (num_classes, num_features + 1) bias trick
+        self.W = np.random.random((num_classes, num_features + 1))/1--- - 0.0005  # (num_classes, num_features + 1) bias trick
         self.x = None
         self.dw = None
 
@@ -21,4 +21,10 @@ class Fully_Connected(object):
         return self.dw
 
     def update(self, learning_rate):
+        # print("W before\n")
+        # print(self.W)
+        # print("dW\n")
+        # print(self.dw)
         self.W = self.W - learning_rate * self.dw
+        # print("\nW after\n")
+        # print(self.W)

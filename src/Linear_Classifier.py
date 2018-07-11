@@ -55,15 +55,19 @@ class Neural_Network(object):
             next_layer_input = X[i]
             for layer in self.layers:
                 next_layer_input = layer.forward(next_layer_input)
-            predicted_class, loss = self.loss_type.forward(next_layer_input, Y[i])
-            print(predicted_class)
-            accurate_predictions += 1
+            yi = Y[i]
+            predicted_class, loss = self.loss_type.forward(next_layer_input, yi)
+            # print(predicted_class)
+            if predicted_class == yi:
+                accurate_predictions += 1
             # print(loss)
             next_layer_dL = self.loss_type.backward()
             for layer in reversed(self.layers):
                 next_layer_dL = layer.backward(next_layer_dL)
+                # print(next_layer_dL)
                 layer.update(learning_rate)
         # print("accurate predictions = ", accurate_predictions, "batch size = ", batch_size)
+        print("% accurate = ", accurate_predictions/batch_size)
 
 
 def normalize_and_zero_mean(arr, max=None):
@@ -72,19 +76,20 @@ def normalize_and_zero_mean(arr, max=None):
     return arr/max - 1/2
 
 
-# data = cifar.load('cifar-10', max_data_size=5, part_validation=0.2)
-# Xtr = normalize_and_zero_mean(data['Xtr'])
-# Ytr = data['Ytr']
-# Xval = normalize_and_zero_mean(data['Xval'])
-# Yval = data['Yval']
-# num_features = 32 * 32 * 3
-# num_classes = 10
+# CIFAR EXAMPLE
+data = cifar.load('cifar-10', max_data_size=100, part_validation=0.1)
+Xtr = normalize_and_zero_mean(data['Xtr'])
+Ytr = data['Ytr']
+Xval = normalize_and_zero_mean(data['Xval'])
+Yval = data['Yval']
+num_features = 32 * 32 * 3
+num_classes = 10
 
 # TRIVIAL EXAMPLE OF TWO CLASSES THAT ARE LINEARLY SEPARABLE TO DEBUG
-Xtr = np.array([[1, 1], [0, 0], [0, 0], [0, 0]])
-Ytr = np.array([1, 0, 0, 0])
-num_classes = 2
-num_features = 2
+# Xtr = np.array([[1, 1], [0, 0], [0, 0], [0, 0]])
+# Ytr = np.array([1, 0, 0, 0])
+# num_classes = 2
+# num_features = 2
 
 fc = Fully_Connected(num_classes, num_features)
 hinge = Hinge_Loss()
@@ -92,9 +97,9 @@ nn = Neural_Network()
 nn.add_layer(fc)
 nn.set_loss_type(hinge)
 
-num_epochs = 1000
+num_epochs = 100
 for i in range(num_epochs):
-    nn.train(Xtr, Ytr, 0.01)
+    nn.train(Xtr, Ytr, 0.001)
 
 # lc = Linear_Classifier(Hinge_Loss(), num_features, num_classes)
 # lc.train(Xtr, Ytr, 0.001)
