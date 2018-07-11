@@ -9,6 +9,7 @@ class Hinge_Loss(object):
         self.yi = None
 
     def forward(self, scores, yi):
+        predicted_class = np.argmax(scores)
         self.yi = yi
         self.losses = np.zeros_like(scores)  # zero on each forward pass
         score_correct = scores[self.yi]
@@ -16,7 +17,7 @@ class Hinge_Loss(object):
             self.losses[i] = max(0, scores[i] + self.delta - score_correct)
         self.losses[self.yi] = 0
         loss = np.sum(self.losses)
-        return loss
+        return predicted_class, loss
 
     def backward(self, dl=1):  # just in case this is ever not last layer?
         ds = np.zeros_like(self.losses)

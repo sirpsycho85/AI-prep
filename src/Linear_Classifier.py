@@ -49,16 +49,22 @@ class Neural_Network(object):
         self.loss_type = loss_type
 
     def train(self, X, Y, learning_rate):
-        for i in range(Y.size):
+        batch_size = Y.size
+        accurate_predictions = 0
+        for i in range(batch_size):
             next_layer_input = X[i]
             for layer in self.layers:
                 next_layer_input = layer.forward(next_layer_input)
-            loss = self.loss_type.forward(next_layer_input, Y[i])
-            print(loss)
+            predicted_class, loss = self.loss_type.forward(next_layer_input, Y[i])
+            print(predicted_class)
+            accurate_predictions += 1
+            # print(loss)
             next_layer_dL = self.loss_type.backward()
             for layer in reversed(self.layers):
                 next_layer_dL = layer.backward(next_layer_dL)
                 layer.update(learning_rate)
+        # print("accurate predictions = ", accurate_predictions, "batch size = ", batch_size)
+
 
 def normalize_and_zero_mean(arr, max=None):
     if max == None:
@@ -74,8 +80,9 @@ def normalize_and_zero_mean(arr, max=None):
 # num_features = 32 * 32 * 3
 # num_classes = 10
 
-Xtr = np.array([[1, 1], [0, 0]])
-Ytr = np.array([1, 0])
+# TRIVIAL EXAMPLE OF TWO CLASSES THAT ARE LINEARLY SEPARABLE TO DEBUG
+Xtr = np.array([[1, 1], [0, 0], [0, 0], [0, 0]])
+Ytr = np.array([1, 0, 0, 0])
 num_classes = 2
 num_features = 2
 
