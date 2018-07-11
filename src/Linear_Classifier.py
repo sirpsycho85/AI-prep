@@ -40,30 +40,57 @@ class Linear_Classifier(object):
 class Neural_Network(object):
     def __init__(self):
         self.layers = []
+        self.loss_type = None
 
     def add_layer(self, layer):
         self.layers.append(layer)
 
-    def train(self, X, y, learning_rate):
-        pass
+    def set_loss_type(self, loss_type):
+        self.loss_type = loss_type
+
+    def train(self, X, Y, learning_rate):
+        for i in range(Y.size):
+            next_layer_input = X[i]
+            for layer in self.layers:
+                next_layer_input = layer.forward(next_layer_input)
+            loss = self.loss_type.forward(next_layer_input, Y[i])
+            print(loss)
+            next_layer_dL = self.loss_type.backward()
+            for layer in reversed(self.layers):
+                next_layer_dL = layer.backward(next_layer_dL)
+                layer.update(learning_rate)
+
+def normalize_and_zero_mean(arr, max=None):
+    if max == None:
+        max = np.max(arr)
+    return arr/max - 1/2
 
 
-data = cifar.load('cifar-10', max_data_size=100, part_validation=0.1)
-Xtr = data['Xtr']
-Ytr = data['Ytr']
-Xval = data['Xval']
-Yval = data['Yval']
-num_features = 32 * 32 * 3
-num_classes = 10
-# lc = Linear_Classifier(Hinge_Loss(), num_features, num_classes)
-# lc.train(Xtr, Ytr, 0.001)
-# predicted_classes = lc.predict(Xval)
-# accuracy = np.mean(predicted_classes == Yval)
-# print("Accuracy: %f" % accuracy)
+# data = cifar.load('cifar-10', max_data_size=5, part_validation=0.2)
+# Xtr = normalize_and_zero_mean(data['Xtr'])
+# Ytr = data['Ytr']
+# Xval = normalize_and_zero_mean(data['Xval'])
+# Yval = data['Yval']
+# num_features = 32 * 32 * 3
+# num_classes = 10
+
+Xtr = np.array([[1, 1], [0, 0]])
+Ytr = np.array([1, 0])
+num_classes = 2
+num_features = 2
 
 fc = Fully_Connected(num_classes, num_features)
 hinge = Hinge_Loss()
 nn = Neural_Network()
 nn.add_layer(fc)
-nn.add_layer(hinge)
-print(nn.layers)
+nn.set_loss_type(hinge)
+
+num_epochs = 1000
+for i in range(num_epochs):
+    nn.train(Xtr, Ytr, 0.01)
+
+# lc = Linear_Classifier(Hinge_Loss(), num_features, num_classes)
+# lc.train(Xtr, Ytr, 0.001)
+# predicted_classes = lc.predict(Xval)
+# accuracy = np.mean(predicted_classes == Yval)
+# print("Accuracy: %f" % accuracy)
